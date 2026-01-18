@@ -15,9 +15,15 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Image Encryption API")
 
 # CORS Configuration
+origins = [
+    "https://enc-img.netlify.app",
+    "http://localhost",
+    "http://localhost:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update to your Netlify domain in production
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
