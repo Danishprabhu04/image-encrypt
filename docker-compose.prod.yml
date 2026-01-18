@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - LD_LIBRARY_PATH=/opt/matlab/v233/runtime/glnxa64:/opt/matlab/v233/bin/glnxa64:/opt/matlab/v233/sys/os/glnxa64
+      - XAPPLRESDIR=/opt/matlab/v233/X11/app-defaults
+    volumes:
+      - /tmp:/tmp
+      - ./matlab:/app/matlab:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - encryption-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - encryption-network
+
+networks:
+  encryption-network:
+    driver: bridge

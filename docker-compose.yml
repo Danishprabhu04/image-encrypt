@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dna-encryption-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./matlab:/app/matlab:ro
+      - backend-uploads:/app/uploads
+      - backend-processed:/app/processed
+    environment:
+      - PYTHONUNBUFFERED=1
+      - USE_COMPILED_EXE=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dna-encryption-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app-network
+
+volumes:
+  backend-uploads:
+  backend-processed:
+
+networks:
+  app-network:
+    driver: bridge
